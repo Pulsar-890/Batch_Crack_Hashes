@@ -71,19 +71,10 @@ def clear_dict(filename="www.txt",path=""):
     report(f"正在清理字典中的非法字符")
     with open(path+filename,"rb") as f:
         txtt=f.readlines()
-    txta=[]
-    for i in tqdm(range(len(txtt)),"清理非法字符"):
-        i=txtt[i]
-        try:
-            x=i.decode('gbk')[:-2]
-            if x:txta.append(x)
-        except Exception:pass
-##    print(txta[:10])
-    txta=list(set(txta))
+        txta=list(set([txtt[j].decode('gbk',errors='ignore')[:-2] for j in tqdm(range(len(txtt)),"清理非法字符")]))
     print("稍候片刻，正在保存...")
-    name=path+"new_"+filename
-    txt("w",txta,name)
-    report(f"清理完成，字典{name}的长度为{len(txta)}")
+    txt("w",txta,'new_'+filename)
+    print(f"清理完成，字典{'new_'+filename}的长度为{len(txta)}")
     return txta
 
 def combine_dict(text):
