@@ -82,26 +82,25 @@ def clear_dict(filename="www.txt",path=""):
 def combine_dict(text):
     report("开始合并字典...")
     #按照首字节分类并检查是否已经存在
-    a=[txt("r",0,f"dict\\{i}.txt") for i in range(256)] #原有字典
-    al=[len(a[i]) for i in range(256)]
     b=[[] for i in range(256)]  #新加字典，用于记录
     c=[[] for i in range(256)]  #新加字典，用于写入
     new_add=[]   #新加字典，用于哈希写入
     for i in tqdm(range(len(text)),"数据载入"):
         i=text[i]
-        if i:
-            x=i.encode()[0]
-            b[x].append(i)
+        if i:b[i.encode()[0]].append(i)
     for i in tqdm(range(256),"字典分类"):
-        c[i]=list(set(b[i])-set(a[i]))
-        for j,n in enumerate(c[i]):
-            new_add.append([n,str(i+256*(j+al[i]))])
+        if b[i]:
+            a=set(txt("r",0,f"dict\\{i}.txt"))
+            la=len(a)
+            if len(b[i])<=la**1.25:c[i]=[j for j in b[i] if not j in a]
+            else:c[i]=list(set(b[i])-a)
+            new_add+=[[n,str(i+256*(j+la))] for j,n in enumerate(c[i])]
 
-    if len(new_add):
+    if new_add:
         for i in range(256):
             txt("a",c[i],f"dict\\{i}.txt")
         report(f"字典合并完成！原字典里没有的词条数目为{len(new_add)}")
-    return new_add,sum(al)+len(new_add)
+    return new_add
 
 def hash_built(new_add):
     report("开始构建哈希字典...")
@@ -270,7 +269,7 @@ if __name__ == "__main__":
                                 text=clear_dict(filename,'base\\')
                             else:
                                 text=txt("r",0,"base\\new_"+filename)
-                            new_add,info=combine_dict(text)
+                            new_add=combine_dict(text)
                             if new_add:
                                 hash_built(new_add)
                             else:report(f"{filename}输入字典条目均已存在，无需更新")
@@ -284,7 +283,7 @@ if __name__ == "__main__":
                             text=clear_dict(filename)
                         else:
                             text=txt("r",0,"new_"+filename)
-                        new_add,info=combine_dict(text)
+                        new_add=combine_dict(text)
                         if new_add:
                             hash_built(new_add)
                         else:report("输入字典条目均已存在，无需更新")
