@@ -55,8 +55,10 @@ def inital():
     report("正在进行出厂设置...")
     t=time()
     os.makedirs("dict", exist_ok=True)
+    os.makedirs("base", exist_ok=True)
     for i in range(256):
         open(f"dict\\{i}.txt","w").write("")
+    report("基础字典出厂设置完成，正在设置哈希字典...")
     for i in "0123456789abcdef":
         os.makedirs(i, exist_ok=True)
         for j in "0123456789abcdef":
@@ -93,7 +95,7 @@ def combine_dict(text):
     for i in tqdm(range(256),"字典分类"):
         c[i]=list(set(b[i])-set(a[i]))
         for j,n in enumerate(c[i]):
-            new_add.append([n,i+256*(j+al[i])])
+            new_add.append([n,str(i+256*(j+al[i]))])
 
     if len(new_add):
         for i in range(256):
@@ -108,15 +110,11 @@ def hash_built(new_add):
         i=new_add[k]
         b=i[0].encode("gbk")
         a=i[0].encode("utf-8")
-        n=ntlm(i[0])
-        built[n[:4]].append(n[4:]+" "+str(i[1]*100))
-        li=[m5(b),s1(b),s256(b),s3_256(b),m5(m5(b).encode()),m5(m5(m5(b).encode()).encode()),m5(s1(b).encode()),s1(m5(b).encode()),m5(b64(b)),m5(s256(b).encode())]
-        for j,n in enumerate(li):
-            built[n[:4]].append(n[4:]+" "+str(i[1]*100+j+1))
+        li=[ntlm(i[0]),m5(b),s1(b),s256(b),s3_256(b),m5(m5(b).encode()),m5(m5(m5(b).encode()).encode()),m5(s1(b).encode()),s1(m5(b).encode()),m5(b64(b)),m5(s256(b).encode())]
         if a!=b:
-            li2=[m5(a),s1(a),s256(a),s3_256(a),m5(m5(a).encode()),m5(m5(m5(a).encode()).encode()),m5(s1(a).encode()),s1(m5(a).encode()),m5(b64(a)),m5(s256(a).encode())]
-            for j,n in enumerate(li2):
-                built[n[:4]].append(n[4:]+" "+str(i[1]*100+j+1))
+            li+=[m5(a),s1(a),s256(a),s3_256(a),m5(m5(a).encode()),m5(m5(m5(a).encode()).encode()),m5(s1(a).encode()),s1(m5(a).encode()),m5(b64(a)),m5(s256(a).encode())]
+        for j,n in enumerate(li):
+            built[n[:4]].append(n[4:]+" "+i[1])
         if k%1000000==999999:
             for n in built:
                 txt("a",built[n],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
@@ -147,14 +145,13 @@ def hash_calcu(text):
         report(f"字典中已存在 {text}，用时{time()-t:.3f}秒")
     else:
         report(f"字典中不存在 {text}，正在进行添加...")
-        i=x+256*(len(a))
+        i=str(x+256*(len(a)))
         txt("a",[text],f"dict\\{x}.txt")
-        txt("a",[n[4:]+" "+str(i*100)],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
+        txt("a",[n[4:]+" "+i],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
         for j,n in enumerate(li):
-            txt("a",[n[4:]+" "+str(i*100+j+1)],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
+            txt("a",[n[4:]+" "+i],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
         if text.encode("gbk")!=text.encode("utf-8"):
-            for j,n in enumerate(li2):
-                txt("a",[n[4:]+" "+str(i*100+j+1)],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
+            txt("a",[n[4:]+" "+i],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
         report(f"添加完成！用时{time()-t:.3f}秒")
 
 def hash_check(md, pri=0):
@@ -175,9 +172,27 @@ def hash_crash(md):
     b=list(map(lambda i:i.split()[0],a))
     if md[4:] in b:
         num=int(a[b.index(md[4:])].split()[1])
-        report(f"碰撞成功！加密方式为{encode_lis[num%100]}，用时{time()-t:.5f}秒：")
-        value=txt('r',0,f"dict\\{num//100%256}.txt")[num//25600]
-        print(f"\n\n{value}\n")
+        value=txt('r',0,f"dict\\{num%256}.txt")[num//256]
+        end=time()-t
+        print(f"SUCCESS!\n\n{value}\n")
+        b=value.encode("gbk")
+        a=value.encode("utf-8")
+        li=[ntlm(value),m5(b),s1(b),s256(b),s3_256(b),m5(m5(b).encode()),m5(m5(m5(b).encode()).encode()),m5(s1(b).encode()),s1(m5(b).encode()),m5(b64(b)),m5(s256(b).encode())]
+        for j,n in enumerate(li):
+            if n==md:
+                method=encode_lis[j]
+                break
+        else:
+            if a!=b:
+                li2=[m5(a),s1(a),s256(a),s3_256(a),m5(m5(a).encode()),m5(m5(m5(a).encode()).encode()),m5(s1(a).encode()),s1(m5(a).encode()),m5(b64(a)),m5(s256(a).encode())]
+                for j,n in enumerate(li2):
+                    if n==md:
+                        method=encode_lis[j+1]
+                        break
+                else:
+                    print("程序出错")
+                    method=000
+        report(f"碰撞成功！加密方式为{method}，用时{end:.5f}秒")
     else:
         report(f"碰撞失败，用时{time()-t:.3f}秒，字典中不存在该哈希值。")
 
@@ -194,14 +209,14 @@ def add_algorithm():
             a=y.encode("utf-8")
             n=s1(b64(b))#新算法
             num=11#算法序号==列表长度
-            #此函数添加完之后有五处需要添加的地方，分别是：
-            #开头列表一处，字典合并两处，单独计算哈希两处
+            #此函数添加完之后有七处需要添加的地方，分别是：
+            #开头列表一处，字典合并两处，单独计算哈希两处，碰撞获取哈希方法两处
             #然后才能重新运行程序
-            built[n[0]][n[1]][n[2]][n[3]].append(n[4:]+" "+str((j*256+i)*100+num))
+            built[n[0]][n[1]][n[2]][n[3]].append(n[4:]+" "+str(j*256+i))
             if a!=b:
                 n=s1(b64(a))#新算法
                 #print(n)
-                built[n[0]][n[1]][n[2]][n[3]].append(n[4:]+" "+str((j*256+i)*100+num))
+                built[n[0]][n[1]][n[2]][n[3]].append(n[4:]+" "+str(j*256+i))
     report("正在写入...")
     for i in "0123456789abcdef":
         for j in "0123456789abcdef":
@@ -228,11 +243,11 @@ if __name__ == "__main__":
         while True:
             mode = input('''请选择模式:
 0.查看字典长度
-1.初始化
+1.出厂设置
 2.添加字典
 3.哈希加密
 4.添加算法
-5.导出
+5.导出字典
 回车直接开始字典破解：''')
             if mode == "0":
                 a=infom()
@@ -242,7 +257,7 @@ if __name__ == "__main__":
                 pass
             elif mode == "2":
                 filename = addtxt(input("请输入待载入字典文件名："))
-                while not filename in os.listdir() and filename != "t.txt" and filename!=".txt":
+                while not filename in os.listdir() and filename != "t.txt" and filename!=".txt" and not "new_"+filename in os.listdir():
                     filename=addtxt(input("该字典不存在，请重新输入："))
                 if filename!="t.txt":
                     if filename==".txt":
