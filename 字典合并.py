@@ -31,7 +31,7 @@ try:
     b=opendirs(name)
     print('读取完成，正在合并...')
     with open(name+".txt","wb") as f:
-        f.write(b'\n'.join(list(set(b)-set(" "))))
+        f.write(b'\n'.join(list(set(b)-set(""))))
     print('OK!')
 except Exception as e:
     error_type = type(e).__name__  # 获取错误类型
