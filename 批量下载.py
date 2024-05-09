@@ -33,7 +33,7 @@ lis=list(filter(None,txt("r",0,filename)))
 os.makedirs(dirname, exist_ok=True)
 for j in lis:
     for i in j.split():
-        if not i in os.listdir(dirname) and (all_filetype or any(i.endswith(t) for t in filetype)):
+        if not i in os.listdir(dirname) and (all_filetype or any(i.lower().endswith(t) for t in filetype)):
             print(i,"：")
             try:
                 wget.download(url+"/"+i,dirname+"\\"+i)

@@ -17,7 +17,7 @@ def opendirs(path,p=""): #┃┣┗━
         if os.path.isdir(path+"\\"+i):
             print(p+show[0][i==x[-1]]+i)
             a+=opendirs(path+"\\"+i,p+show[1][i==x[-1]])
-        elif (all_filetype or any(i.endswith(t) for t in file_type)):
+        elif (all_filetype or any(i.lower().endswith(t) for t in file_type)):
             with open(path+"\\"+i,"rb") as f:
                 b=f.read().replace(b"\r",b"").split(b"\n")
                 a+=b
