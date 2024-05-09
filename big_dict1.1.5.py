@@ -75,7 +75,7 @@ def clear_dict(filename="www.txt",path=""):
         txtt=f.readlines()
         txta=list(set([txtt[j].decode('gbk',errors='ignore')[:-2] for j in tqdm(range(len(txtt)),"清理非法字符")]))
     print("稍候片刻，正在保存...")
-    txt("w",txta,'new_'+filename)
+    txt("w",txta,path+'new_'+filename)
     print(f"清理完成，字典{'new_'+filename}的长度为{len(txta)}")
     return txta
 
@@ -114,7 +114,7 @@ def hash_built(new_add):
             li+=[m5(a),s1(a),s256(a),s3_256(a),m5(m5(a).encode()),m5(m5(m5(a).encode()).encode()),m5(s1(a).encode()),s1(m5(a).encode()),m5(b64(a)),m5(s256(a).encode())]
         for j,n in enumerate(li):
             built[n[:4]].append(n[4:]+" "+i[1])
-        if k%1000000==999999:
+        if k%2000000==1999999:
             for n in built:
                 txt("a",built[n],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
                 built[n]=[]
