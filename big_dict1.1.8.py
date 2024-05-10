@@ -19,23 +19,16 @@ ntlm = lambda b:hashlib.new('md4', b.encode('utf-16le')).hexdigest() #不能先e
 encode_lis=["ntlm","md5","sha1","sha256","sha3_256","m5_m5","m5_m5_m5","m5_sha1","sha1_m5","m5_b64","m5_sha256"]
 #坐标：(文件夹内地址*256+文件夹序号)*100+加密类型序号（同encode_lis）
 filename="1.txt"
-def txt(func, lis="", file=filename):
-    SEpa="\n"
-    if func not in ["r", "a", "w"]:raise ValueError("Invalid value for opening mode. Expected one of: ['r', 'a', 'w']")
+def txt(func, lis="", file=filename):    #txt('w',text);txt('a',text);
+    import encodings;SEpa="\n"
+    if func not in ['r','a','w']:raise ValueError("Invalid mode. Expected one of: ['r','a','w']")
     def oper_txt(encod,file=file):
         with open(file, func, encoding=encod) as f:
             if func == "r":return f.read().replace("\ufeff","").split(SEpa)
-            else:
-                txt = SEpa.join(lis)
-                if func == "a":txt = SEpa + txt
-                f.write(txt)
-                return 0
-    try:
-        result=oper_txt('gbk')
-    except (UnicodeDecodeError, UnicodeEncodeError, FileNotFoundError):
-        try:result=oper_txt('utf-8')
-        except (UnicodeDecodeError,UnicodeEncodeError):result=oper_txt('utf-16')
-        #except:return 0
+            else:f.write({"a":SEpa,"w":""}[func]+SEpa.join(lis));return 0
+    for k in ['gbk', 'utf-8', 'utf-16']+list(set(encodings.aliases.aliases.values())):
+        try:result=oper_txt(k);break
+        except (UnicodeDecodeError, UnicodeEncodeError, FileNotFoundError):result=0
     if func=="r":return result
             
 def report(message):
@@ -190,6 +183,10 @@ def hash_crash(md):
                 else:
                     print("程序出错")
                     method=000
+            else:
+                print("程序出错")
+                method=000
+                
         report(f"碰撞成功！加密方式为{method}，用时{end:.5f}秒")
     else:
         report(f"碰撞失败，用时{time()-t:.3f}秒，字典中不存在该哈希值。")
@@ -223,10 +220,12 @@ def add_algorithm():
                     txt("a",built[i][j][k][l],f"{i}\\{j}\\{k}\\{l}.txt")
     report(f"写入完成！用时{time()-t:.3f}秒")
 
-def infom():
+def infom(clean=False):
     a=0
     for i in tqdm(range(256),"统计字典长度"):
-        a+=len(list(filter(None,txt("r",0,f"dict\\{i}.txt"))))
+        x=list(filter(None,txt("r",0,f"dict\\{i}.txt")))
+        if clean:txt("w",[""]+x,f"dict\\{i}.txt")
+        a+=len(x)
     return a
 
 def output():
@@ -288,7 +287,7 @@ if __name__ == "__main__":
                             report(f"字典合并完成！原字典里没有的词条数目为{len(new_add)}")
                             hash_built(new_add)
                         else:report("输入字典条目均已存在，无需更新")
-                    report(f"字典合并完成！字典总条数为{infom()}，总共用时{time()-t:.3f}秒")
+                    report(f"字典合并完成！字典总条数为{infom(True)}，总共用时{time()-t:.3f}秒")
 
             elif mode == "3":
                 text = input("请输入需要哈希加密的数据：")
