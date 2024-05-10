@@ -72,11 +72,11 @@ def inital():
 def clear_dict(filename="www.txt",path=""):
     report(f"正在清理字典中的非法字符")
     with open(path+filename,"rb") as f:
-        txtt=f.readlines()
-        txta=list(set([txtt[j].decode('gbk',errors='ignore')[:-2] for j in tqdm(range(len(txtt)),"清理非法字符")]))
+        txtt=f.read().replace(b'\r',b'').split(b'\n')
+        txta=list(set([txtt[j].decode('gbk',errors='ignore') for j in tqdm(range(len(txtt)),"清理非法字符")]))
     print("稍候片刻，正在保存...")
     txt("w",txta,path+'new_'+filename)
-    print(f"清理完成，字典{'new_'+filename}的长度为{len(txta)}")
+    report(f"清理完成，字典{'new_'+filename}的长度为{len(txta)}")
     return txta
 
 def combine_dict(text):
@@ -92,14 +92,13 @@ def combine_dict(text):
         if b[i]:
             a=set(txt("r",0,f"dict\\{i}.txt"))
             la=len(a)
-            if len(b[i])<=la**1.25:c[i]=[j for j in b[i] if not j in a]
+            if len(b[i])<=la:c[i]=[j for j in b[i] if not j in a]
             else:c[i]=list(set(b[i])-a)
             new_add+=[[n,str(i+256*(j+la))] for j,n in enumerate(c[i])]
-
+    print("开始进行字典写入，请不要中断程序...")
     if new_add:
         for i in range(256):
             txt("a",c[i],f"dict\\{i}.txt")
-        report(f"字典合并完成！原字典里没有的词条数目为{len(new_add)}")
     return new_add
 
 def hash_built(new_add):
@@ -271,6 +270,7 @@ if __name__ == "__main__":
                                 text=txt("r",0,"base\\new_"+filename)
                             new_add=combine_dict(text)
                             if new_add:
+                                report(f"字典合并完成！原字典里没有的词条数目为{len(new_add)}")
                                 hash_built(new_add)
                             else:report(f"{filename}输入字典条目均已存在，无需更新")
                         
@@ -285,6 +285,7 @@ if __name__ == "__main__":
                             text=txt("r",0,"new_"+filename)
                         new_add=combine_dict(text)
                         if new_add:
+                            report(f"字典合并完成！原字典里没有的词条数目为{len(new_add)}")
                             hash_built(new_add)
                         else:report("输入字典条目均已存在，无需更新")
                     report(f"字典合并完成！字典总条数为{infom()}，总共用时{time()-t:.3f}秒")
