@@ -26,9 +26,7 @@ def txt(func, lis="", file=filename):    #txt('w',text);txt('a',text);
         with open(file, func, encoding=encod) as f:
             if func == "r":return f.read().replace("\ufeff","").split(SEpa)
             else:f.write({"a":SEpa,"w":""}[func]+SEpa.join(lis));return 0
-    for k in ['gbk', 'utf-8', 'utf-16']+list(set(encodings.aliases.aliases.values())):
-        try:result=oper_txt(k);break
-        except (UnicodeDecodeError, UnicodeEncodeError, FileNotFoundError):result=0
+    result=oper_txt('gbk')
     if func=="r":return result
             
 def report(message):
@@ -64,13 +62,12 @@ def inital():
     
 def clear_dict(filename="www.txt",path=""):
     report(f"正在清理字典中的非法字符")
-    with open(path+filename,"rb") as f:
+    with open(path+filename,"rt") as f:
         txtt=f.read().replace(b'\r',b'').split(b'\n')
         txta=list(set([txtt[j].decode('gbk',errors='ignore') for j in tqdm(range(len(txtt)),"清理非法字符")]))
     print("稍候片刻，正在保存...")
     txt("w",txta,path+'new_'+filename)
     report(f"清理完成，字典{'new_'+filename}的长度为{len(txta)}")
-    return txta
 
 def combine_dict(text):
     report("开始合并字典...")
@@ -261,12 +258,10 @@ if __name__ == "__main__":
                         t=time()
                         for filename in os.listdir('base'):
                             report(f"准备合并{filename}字典")
-                            if filename[:4]=="new_":
-                                text=txt("r",0,"base\\"+filename)
+                            if filename[:4]=="new_":filename=filename[4:]
                             elif not "new_"+filename in os.listdir('base'):
                                 text=clear_dict(filename,'base\\')
-                            else:
-                                text=txt("r",0,"base\\new_"+filename)
+                            text=txt("r",0,"base\\new_"+filename)
                             new_add=combine_dict(text)
                             if new_add:
                                 report(f"字典合并完成！原字典里没有的词条数目为{len(new_add)}")
@@ -276,12 +271,10 @@ if __name__ == "__main__":
                     else:
                         t=time()
                         report(f"准备合并{filename}字典")
-                        if filename[:4]=="new_":
-                            text=txt("r",0,filename)
-                        if not "new_"+filename in os.listdir():
-                            text=clear_dict(filename)
-                        else:
-                            text=txt("r",0,"new_"+filename)
+                        if filename[:4]=="new_":filename=filename[4:]
+                        elif not "new_"+filename in os.listdir():
+                            clear_dict(filename)
+                        text=txt("r",0,"new_"+filename)
                         new_add=combine_dict(text)
                         if new_add:
                             report(f"字典合并完成！原字典里没有的词条数目为{len(new_add)}")
