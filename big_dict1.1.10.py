@@ -156,36 +156,38 @@ def hash_check(md, pri=0):
 
 def hash_crash(md):
     t=time()
-    a=[i for i in txt("r",0,f"{md[0]}\\{md[1]}\\{md[2]}\\{md[3]}.txt") if i]
-    b=list(map(lambda i:i.split()[0],a))
-    if md[4:] in b:
-        num=int(a[b.index(md[4:])].split()[1])
-        value=txt('r',0,f"dict\\{num%256}.txt")[num//256]
-        end=time()-t
-        print(f"SUCCESS!\n\n{value}\n")
-        b=value.encode("gbk")
-        a=value.encode("utf-8")
-        li=[ntlm(value),m5(b),s1(b),s256(b),s3_256(b),m5(m5(b).encode()),m5(m5(m5(b).encode()).encode()),m5(s1(b).encode()),s1(m5(b).encode()),m5(b64(b)),m5(s256(b).encode())]
-        for j,n in enumerate(li):
-            if n==md:
-                method=encode_lis[j]
-                break
-        else:
-            if a!=b:
-                li2=[m5(a),s1(a),s256(a),s3_256(a),m5(m5(a).encode()),m5(m5(m5(a).encode()).encode()),m5(s1(a).encode()),s1(m5(a).encode()),m5(b64(a)),m5(s256(a).encode())]
-                for j,n in enumerate(li2):
-                    if n==md:
-                        method=encode_lis[j+1]
-                        break
+    flag=0
+    for i in txt("r",0,f"{md[0]}\\{md[1]}\\{md[2]}\\{md[3]}.txt"):
+        if not i or i[0]!=md[4]:continue
+        if i.split()[0]==md[4:]:
+            num=int(i.split()[1])
+            value=txt('r',0,f"dict\\{num%256}.txt")[num//256]
+            end=time()-t
+            print(f"SUCCESS!\n\n{value}\n")
+            b=value.encode("gbk")
+            a=value.encode("utf-8")
+            li=[ntlm(value),m5(b),s1(b),s256(b),s3_256(b),m5(m5(b).encode()),m5(m5(m5(b).encode()).encode()),m5(s1(b).encode()),s1(m5(b).encode()),m5(b64(b)),m5(s256(b).encode())]
+            for j,n in enumerate(li):
+                if n==md:
+                    method=encode_lis[j]
+                    break
+            else:
+                if a!=b:
+                    li2=[m5(a),s1(a),s256(a),s3_256(a),m5(m5(a).encode()),m5(m5(m5(a).encode()).encode()),m5(s1(a).encode()),s1(m5(a).encode()),m5(b64(a)),m5(s256(a).encode())]
+                    for j,n in enumerate(li2):
+                        if n==md:
+                            method=encode_lis[j+1]
+                            break
+                    else:
+                        print("程序出错")
+                        method=000
                 else:
                     print("程序出错")
                     method=000
-            else:
-                print("程序出错")
-                method=000
-                
-        report(f"碰撞成功！加密方式为{method}，用时{end:.5f}秒")
-    else:
+                    
+            report(f"碰撞成功！加密方式为{method}，用时{end:.5f}秒")
+            flag+=1
+    if not flag:
         report(f"碰撞失败，用时{time()-t:.3f}秒，字典中不存在该哈希值。")
 
 #算法只能手动修改程序添加，此函数只是用来将之前字典内已经有的来构建哈希字典
