@@ -164,7 +164,7 @@ def hash_check(md, pri=0):
         return 0
     md = md.lower()
     for i in range(len(md)):
-       if not ("a" <= md[i] <= "f" or "0" <= md[i] <= "9"):
+       if not md[i] in "0123456789abcdef":
             if pri:print(f"密文第{i+1}位\"{md[i]}\"不是16进制数，请重新输入！")
             return 0
     return md
@@ -182,26 +182,14 @@ def hash_crash(md):
             print(f"SUCCESS!\n\n{value}\n")
             b=value.encode("gbk")
             a=value.encode("utf-8")
+            method=0
             li=[ntlm(value),m5(b),s1(b),s256(b),s3_256(b),m5(m5(b).encode()),m5(m5(m5(b).encode()).encode()),m5(s1(b).encode()),s1(m5(b).encode()),m5(b64(b)),m5(s256(b).encode())]
-            for j,n in enumerate(li):
-                if n==md:
-                    method=encode_lis[j]
-                    break
-            else:
-                if a!=b:
-                    li2=[m5(a),s1(a),s256(a),s3_256(a),m5(m5(a).encode()),m5(m5(m5(a).encode()).encode()),m5(s1(a).encode()),s1(m5(a).encode()),m5(b64(a)),m5(s256(a).encode())]
-                    for j,n in enumerate(li2):
-                        if n==md:
-                            method=encode_lis[j+1]
-                            break
-                    else:
-                        print("程序出错")
-                        method=000
-                else:
-                    print("程序出错")
-                    method=000
-                    
-            report(f"碰撞成功！加密方式为{method}，用时{end:.5f}秒")
+            if md in li:method=encode_lis[li.index(md)]
+            elif a!=b:
+                li2=[m5(a),s1(a),s256(a),s3_256(a),m5(m5(a).encode()),m5(m5(m5(a).encode()).encode()),m5(s1(a).encode()),s1(m5(a).encode()),m5(b64(a)),m5(s256(a).encode())]
+                if md in li2:method=encode_lis[li2.index(md)]
+            if method:report(f"碰撞成功！加密方式为{method}，用时{end:.5f}秒")
+            else:print("程序出错！")
             flag+=1
     if not flag:
         lis=['31d6cfe0d16ae931b73c59d7e0c089c0', 'd41d8cd98f00b204e9800998ecf8427e', 'da39a3ee5e6b4b0d3255bfef95601890afd80709', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a', '74be16979710d4c4e7c6647856088456', 'acf7ef943fdeb3cbfed8dd0d8f584731', '0144712dd81be0c3d9724f5e56ce6685', '67a74306b06d0c01624fe0d0249a570f4d093747', 'd41d8cd98f00b204e9800998ecf8427e', 'fa1269ea0d8c8723b5734305e48f7d46']
