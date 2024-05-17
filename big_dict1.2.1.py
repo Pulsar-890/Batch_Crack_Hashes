@@ -17,9 +17,10 @@ s256 = lambda b:sha256(b).hexdigest()
 s3_256 = lambda b:sha3_256(b).hexdigest()
 ntlm = lambda b:hashlib.new('md4', b.encode('utf-16le')).hexdigest() #不能先encode
 encode_lis=["ntlm","md5","sha1","sha256","sha3_256","m5_m5","m5_m5_m5","m5_sha1","sha1_m5","m5_b64","m5_sha256"]
-#坐标：(文件夹内地址*256+文件夹序号)*100+加密类型序号（同encode_lis）
+#坐标：md5前三位+文件夹内地址
 filename="1.txt"
 
+#txt读取函数
 def txt(func, lis="", file=filename):    #txt('w',text);txt('a',text);
     import encodings;SEpa="\n"
     if func not in ['r','a','w']:raise ValueError("Invalid mode. Expected one of: ['r','a','w']")
@@ -29,14 +30,16 @@ def txt(func, lis="", file=filename):    #txt('w',text);txt('a',text);
             else:f.write({"a":SEpa,"w":""}[func]+SEpa.join(lis));return 0
     result=oper_txt('gbk')
     if func=="r":return result
-            
-def report(message):
+
+#日志记录函数
+def report(message=""):
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     report_message = f"{timestamp} {message}"  # 添加时间信息
     print(report_message)  # 打印报告
     with open("log.txt", 'a') as f:
         f.write(report_message + "\n")
-        
+
+#初始化函数    
 def inital():
     try:
         x=infom()
@@ -61,7 +64,8 @@ def inital():
                 for l in "0123456789abcdef":
                     open(f"{i}\\{j}\\{k}\\{l}.txt","w").write("")
     report(f"初始化完成，用时{time()-t:.3f}秒")
-    
+
+#清理字典函数
 def clear_dict(filename="www.txt",path=""):
     report(f"正在清理字典中的非法字符")
     with open(path+filename,"rb") as f:
@@ -71,7 +75,7 @@ def clear_dict(filename="www.txt",path=""):
     txt("w",txta,path+'new_'+filename)
     report(f"清理完成，字典{'new_'+filename}的长度为{len(txta)}")
 
-
+#合并字典函数
 def combine_dict(text):
     report("开始合并字典...")
     #按照首字节分类并检查是否已经存在
@@ -98,6 +102,7 @@ def combine_dict(text):
                 txt("a",b[i],f"dict\\{i[0]}\\{i[1]}\\{i[2]}.txt")
     return new_add
 
+#构建哈希字典函数
 def hash_built(new_add):
     report("开始构建哈希字典...")
     built={f"{i:0>4x}":[] for i in range(65536)}
@@ -118,6 +123,7 @@ def hash_built(new_add):
     for n in built:
         txt("a",built[n],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
 
+#单条文本哈希加密函数
 def hash_calcu(text):
     print()
     print("结果如下：")
@@ -150,6 +156,7 @@ def hash_calcu(text):
             txt("a",[n[4:]+" "+i],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
         report(f"添加完成！用时{time()-t:.3f}秒")
 
+#哈希格式检查函数
 def hash_check(md, pri=0):
     md = md.replace(" ", "")
     if len(md) != 32 and len(md) != 64 and len(md) != 40:
@@ -162,6 +169,7 @@ def hash_check(md, pri=0):
             return 0
     return md
 
+#哈希碰撞函数
 def hash_crash(md):
     t=time()
     flag=0
@@ -202,6 +210,7 @@ def hash_crash(md):
         else:
             report(f"碰撞失败，用时{time()-t:.3f}秒，字典中不存在该哈希值。")
 
+#新增算法函数
 #算法只能手动修改程序添加，此函数只是用来将之前字典内已经有的来构建哈希字典
 def add_algorithm():
     t=time()
@@ -231,18 +240,21 @@ def add_algorithm():
                     txt("a",built[i][j][k][l],f"{i}\\{j}\\{k}\\{l}.txt")
     report(f"写入完成！用时{time()-t:.3f}秒")
 
+#统计字典长度函数
 def infom():
     a=-4096
     for i in tqdm(range(4096),"统计字典长度"):
         a+=len(txt("r",0,"dict\\"+'\\'.join(f"{i:0>3x}")+".txt"))
     return a
 
+#导出字典函数
 def output():
     open("output.txt","w").write("")
-    for i in tqdm(range(256),"导出字典"):
-        txt("a",sorted(list(set(filter(None,txt("r",0,f"dict\\{i}.txt"))))),"output.txt")
+    for i in tqdm(range(4096),"导出字典"):
+        a=txt("r",0,"dict\\"+'\\'.join(f"{i:0>3x}")+".txt")
+        txt("a",list(filter(None,a)),"output.txt")
 
-    
+#主程序    
 if __name__ == "__main__":
         
     try:
