@@ -19,6 +19,7 @@ ntlm = lambda b:hashlib.new('md4', b.encode('utf-16le')).hexdigest() #不能先e
 encode_lis=["ntlm","md5","sha1","sha256","sha3_256","m5_m5","m5_m5_m5","m5_sha1","sha1_m5","m5_b64","m5_sha256"]
 #坐标：(文件夹内地址*256+文件夹序号)*100+加密类型序号（同encode_lis）
 filename="1.txt"
+
 def txt(func, lis="", file=filename):    #txt('w',text);txt('a',text);
     import encodings;SEpa="\n"
     if func not in ['r','a','w']:raise ValueError("Invalid mode. Expected one of: ['r','a','w']")
@@ -47,14 +48,15 @@ def inital():
     t=time()
     os.makedirs("dict", exist_ok=True)
     os.makedirs("base", exist_ok=True)
-    for i in range(256):
-        open(f"dict\\{i}.txt","w").write("")
-    report("基础字典出厂设置完成，正在设置哈希字典...")
-    for i in "0123456789abcdef":
+    for i in tqdm(range(16),"初始化字典文件"):
+        i=hex(i)[2:]
+        os.makedirs("dict\\"+i, exist_ok=True)
         os.makedirs(i, exist_ok=True)
         for j in "0123456789abcdef":
+            os.makedirs("dict\\"+i+"\\"+j, exist_ok=True)
             os.makedirs(i+"\\"+j, exist_ok=True)
             for k in "0123456789abcdef":
+                open(f"dict\\{i}\\{j}\\{k}.txt","w").write("")
                 os.makedirs(i+"\\"+j+"\\"+k, exist_ok=True)
                 for l in "0123456789abcdef":
                     open(f"{i}\\{j}\\{k}\\{l}.txt","w").write("")
@@ -62,33 +64,38 @@ def inital():
     
 def clear_dict(filename="www.txt",path=""):
     report(f"正在清理字典中的非法字符")
-    with open(path+filename,"rt") as f:
+    with open(path+filename,"rb") as f:
         txtt=f.read().replace(b'\r',b'').split(b'\n')
         txta=list(set([txtt[j].decode('gbk',errors='ignore') for j in tqdm(range(len(txtt)),"清理非法字符")]))
     print("稍候片刻，正在保存...")
     txt("w",txta,path+'new_'+filename)
     report(f"清理完成，字典{'new_'+filename}的长度为{len(txta)}")
 
+
 def combine_dict(text):
     report("开始合并字典...")
     #按照首字节分类并检查是否已经存在
-    b=[[] for i in range(256)]  #新加字典，用于记录
-    c=[[] for i in range(256)]  #新加字典，用于写入
+    x=[f"{i:0>3x}" for i in range(4096)]
+    b={i:[] for i in x}  #新加字典，用于记录
     new_add=[]   #新加字典，用于哈希写入
     for i in tqdm(range(len(text)),"数据载入"):
         i=text[i]
-        if i:b[i.encode()[0]].append(i)
-    for i in tqdm(range(256),"字典分类"):
+        if i:b[m5(i.encode())[:3]].append(i)
+    for i in tqdm(range(4096),"字典分类"):
+        i=x[i]
         if b[i]:
-            a=set(txt("r",0,f"dict\\{i}.txt"))
+            a=set(txt("r",0,f"dict\\{i[0]}\\{i[1]}\\{i[2]}.txt"))
             la=len(a)
-            if len(b[i])<=la:c[i]=[j for j in b[i] if not j in a]
-            else:c[i]=list(set(b[i])-a)
-            new_add+=[[n,str(i+256*(j+la))] for j,n in enumerate(c[i])]
+            if len(b[i])<=la:
+                b[i]=[j for j in b[i] if not j in a]
+            else:
+                b[i]=list(set(b[i])-a)
+            new_add+=[[n,i+str(j+la)] for j,n in enumerate(b[i])]
     print("开始进行字典写入，请不要中断程序...")
     if new_add:
-        for i in range(256):
-            txt("a",c[i],f"dict\\{i}.txt")
+        for i in x:
+            if b[i]:
+                txt("a",b[i],f"dict\\{i[0]}\\{i[1]}\\{i[2]}.txt")
     return new_add
 
 def hash_built(new_add):
@@ -103,10 +110,11 @@ def hash_built(new_add):
             li+=[m5(a),s1(a),s256(a),s3_256(a),m5(m5(a).encode()),m5(m5(m5(a).encode()).encode()),m5(s1(a).encode()),s1(m5(a).encode()),m5(b64(a)),m5(s256(a).encode())]
         for j,n in enumerate(li):
             built[n[:4]].append(n[4:]+" "+i[1])
-        if k%2000000==1999999:
+        if k%5000000==4999999:
             for n in built:
-                txt("a",built[n],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
-                built[n]=[]
+                if built[n]:
+                    txt("a",built[n],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
+                    built[n]=[]
     for n in built:
         txt("a",built[n],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
 
@@ -126,15 +134,15 @@ def hash_calcu(text):
     n=ntlm(text)
     print(n,f"\t({encode_lis[0]})")
     t=time()
-    x=text.encode()[0]
+    x=m5(text.encode())[:3]
     report(f"检查字典中是否有 {text}")
-    a=txt("r",0,f"dict\\{x}.txt")
+    a=txt("r",0,f"dict\\{x[0]}\\{x[1]}\\{x[2]}.txt")
     if text in a:
         report(f"字典中已存在 {text}，用时{time()-t:.3f}秒")
     else:
         report(f"字典中不存在 {text}，正在进行添加...")
-        i=str(x+256*(len(a)))
-        txt("a",[text],f"dict\\{x}.txt")
+        i=x+str(len(a))
+        txt("a",[text],f"dict\\{x[0]}\\{x[1]}\\{x[2]}.txt")
         txt("a",[n[4:]+" "+i],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
         for j,n in enumerate(li):
             txt("a",[n[4:]+" "+i],f"{n[0]}\\{n[1]}\\{n[2]}\\{n[3]}.txt")
@@ -160,8 +168,8 @@ def hash_crash(md):
     for i in txt("r",0,f"{md[0]}\\{md[1]}\\{md[2]}\\{md[3]}.txt"):
         if not i or i[0]!=md[4]:continue
         if i.split()[0]==md[4:]:
-            num=int(i.split()[1])
-            value=txt('r',0,f"dict\\{num%256}.txt")[num//256]
+            num=i.split()[1]
+            value=txt('r',0,f"dict\\{num[0]}\\{num[1]}\\{num[2]}.txt")[int(num[3:])]
             end=time()-t
             print(f"SUCCESS!\n\n{value}\n")
             b=value.encode("gbk")
@@ -188,7 +196,11 @@ def hash_crash(md):
             report(f"碰撞成功！加密方式为{method}，用时{end:.5f}秒")
             flag+=1
     if not flag:
-        report(f"碰撞失败，用时{time()-t:.3f}秒，字典中不存在该哈希值。")
+        lis=['31d6cfe0d16ae931b73c59d7e0c089c0', 'd41d8cd98f00b204e9800998ecf8427e', 'da39a3ee5e6b4b0d3255bfef95601890afd80709', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a', '74be16979710d4c4e7c6647856088456', 'acf7ef943fdeb3cbfed8dd0d8f584731', '0144712dd81be0c3d9724f5e56ce6685', '67a74306b06d0c01624fe0d0249a570f4d093747', 'd41d8cd98f00b204e9800998ecf8427e', 'fa1269ea0d8c8723b5734305e48f7d46']
+        if md in lis:
+            report(f"碰撞成功！明文为\\x00, 加密方式为{encode_lis[lis.index(md)]}，用时{time()-t:.5f}秒")
+        else:
+            report(f"碰撞失败，用时{time()-t:.3f}秒，字典中不存在该哈希值。")
 
 #算法只能手动修改程序添加，此函数只是用来将之前字典内已经有的来构建哈希字典
 def add_algorithm():
@@ -219,12 +231,10 @@ def add_algorithm():
                     txt("a",built[i][j][k][l],f"{i}\\{j}\\{k}\\{l}.txt")
     report(f"写入完成！用时{time()-t:.3f}秒")
 
-def infom(clean=False):
-    a=0
-    for i in tqdm(range(256),"统计字典长度"):
-        x=list(filter(None,txt("r",0,f"dict\\{i}.txt")))
-        if clean:txt("w",[""]+x,f"dict\\{i}.txt")
-        a+=len(x)
+def infom():
+    a=-4096
+    for i in tqdm(range(4096),"统计字典长度"):
+        a+=len(txt("r",0,"dict\\"+'\\'.join(f"{i:0>3x}")+".txt"))
     return a
 
 def output():
@@ -282,7 +292,7 @@ if __name__ == "__main__":
                             report(f"字典合并完成！原字典里没有的词条数目为{len(new_add)}")
                             hash_built(new_add)
                         else:report("输入字典条目均已存在，无需更新")
-                    report(f"字典合并完成！字典总条数为{infom(True)}，总共用时{time()-t:.3f}秒")
+                    report(f"字典合并完成！字典总条数为{infom()}，总共用时{time()-t:.3f}秒")
 
             elif mode == "3":
                 text = input("请输入需要哈希加密的数据：")
