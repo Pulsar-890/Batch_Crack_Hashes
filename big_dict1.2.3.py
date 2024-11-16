@@ -159,8 +159,8 @@ def hash_calcu(text):
 #哈希格式检查函数
 def hash_check(md, pri=0):
     md = md.replace(" ", "")
-    if len(md) != 32 and len(md) != 64 and len(md) != 40:
-        if pri:print(f"密文长度为{len(md)}，不符合哈希规范(32,40,64)，请重新输入！")
+    if not len(md) in [16,32,40,64]:
+        if pri:print(f"密文长度为{len(md)}，不符合哈希规范(16,32,40,64)，请重新输入！")
         return 0
     md = md.lower()
     for i in range(len(md)):
@@ -175,7 +175,7 @@ def hash_crash(md):
     flag=0
     for i in txt("r",0,f"{md[0]}\\{md[1]}\\{md[2]}\\{md[3]}.txt"):
         if not i or i[0]!=md[4]:continue
-        if i.split()[0]==md[4:]:
+        if i.split()[0][:12]==md[4:16]:
             num=i.split()[1]
             value=txt('r',0,f"dict\\{num[0]}\\{num[1]}\\{num[2]}.txt")[int(num[3:])]
             end=time()-t
@@ -184,17 +184,24 @@ def hash_crash(md):
             a=value.encode("utf-8")
             method=0
             li=[ntlm(value),m5(b),s1(b),s256(b),s3_256(b),m5(m5(b).encode()),m5(m5(m5(b).encode()).encode()),m5(s1(b).encode()),s1(m5(b).encode()),m5(b64(b)),m5(s256(b).encode())]
+            li_16=[i[:16] for i in li]
             if md in li:method=encode_lis[li.index(md)]
+            elif md in li_16:method=encode_lis[li_16.index(md)]
             elif a!=b:
                 li2=[m5(a),s1(a),s256(a),s3_256(a),m5(m5(a).encode()),m5(m5(m5(a).encode()).encode()),m5(s1(a).encode()),s1(m5(a).encode()),m5(b64(a)),m5(s256(a).encode())]
+                li2_16=[i[:16] for i in li2]
                 if md in li2:method=encode_lis[li2.index(md)]
+                elif md in li2_16:method=encode_lis[li2_16.index(md)]
             if method:report(f"碰撞成功！加密方式为{method}，用时{end:.5f}秒")
             else:print("程序出错！")
             flag+=1
     if not flag:
         lis=['31d6cfe0d16ae931b73c59d7e0c089c0', 'd41d8cd98f00b204e9800998ecf8427e', 'da39a3ee5e6b4b0d3255bfef95601890afd80709', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a', '74be16979710d4c4e7c6647856088456', 'acf7ef943fdeb3cbfed8dd0d8f584731', '0144712dd81be0c3d9724f5e56ce6685', '67a74306b06d0c01624fe0d0249a570f4d093747', 'd41d8cd98f00b204e9800998ecf8427e', 'fa1269ea0d8c8723b5734305e48f7d46']
+        lis_16=[i[:16] for i in lis]
         if md in lis:
             report(f"碰撞成功！明文为\\x00, 加密方式为{encode_lis[lis.index(md)]}，用时{time()-t:.5f}秒")
+        elif md in lis_16:
+            report(f"碰撞成功！明文为\\x00, 加密方式为{encode_lis[lis_16.index(md)]}，用时{time()-t:.5f}秒")
         else:
             report(f"碰撞失败，用时{time()-t:.3f}秒，字典中不存在该哈希值。")
 
