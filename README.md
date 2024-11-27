@@ -122,8 +122,11 @@ ntlm
 ​	3.程序不自带字典，字典库网上找找还是挺多的，以下是作者看到的几个网站
 
 ​	[https://crackstation.net/buy-crackstation-wordlist-password-cracking-dictionary.htm](https://crackstation.net/buy-crackstation-wordlist-password-cracking-dictionary.htm)
+
 ​	[https://weakpass.com/](https://weakpass.com/)
+
 ​	[http://contest-2010.korelogic.com/wordlists.html](http://contest-2010.korelogic.com/wordlists.html)
+
 ​	[https://wiki.skullsecurity.org/index.php/Passwords#Password_dictionaries](https://wiki.skullsecurity.org/index.php/Passwords#Password_dictionaries)
 
 ​	4.想做异步，或者用C\C++重构，效率想必更高，但是作者懒
