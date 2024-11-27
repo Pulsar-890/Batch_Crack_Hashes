@@ -1,5 +1,5 @@
 # Batch_Crack_Hashes
-# version: v2.1.0
+# version: v2.1.0 
 # Author: Pulsar 
 
 import hashlib
