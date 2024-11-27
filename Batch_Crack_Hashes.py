@@ -1,3 +1,7 @@
+# Batch_Crack_Hashes
+# version: v2.0.1
+# Author: Pulsar 
+
 import hashlib
 from hashlib import md5,sha256,sha3_256,sha1,sha512
 import base64
@@ -230,7 +234,7 @@ def hash_judge(md,t,lis):
             if n.startswith(md) or md.startswith(n):
                 try:print(f"SUCCESS!\n\n{j.decode('utf-8')}\n")
                 except:print(f"SUCCESS!\n\n{j}\n")
-                report(f"严谨形式:{[j]}\n哈希值为:{n}",True)
+                report(f"严谨形式:{[j]}\n完整哈希值为:{n}",True)
                 report(f"碰撞成功！加密方式为{encode_lis[k]}，用时{time()-t:.5f}秒")
                 try:flag+=[j.decode('utf-8'),encode_lis[k],n]
                 except:flag+=[str(j),encode_lis[k],n]
@@ -246,7 +250,7 @@ def hash_crash(md,silent=False):
         if txt[i:i+2].hex()==md[4:8]:
             x=txt[i+2:i+4].hex()
             flag+=hash_judge(md,t,open(f"dict\\{x[0]}\\{x[1]}\\{x[2]}\\{x[3]}.txt","rb").read().splitlines())
-    flag+=hash_judge(md,t,[b"\n",b"\n\n",b"\n\n\n",b""])
+    flag+=hash_judge(md,t,[b"\n",b"\n\n",b"\n\n\n",b"",b'\r',b'\r\n'])
     if not flag:
         report(f"碰撞失败，用时{time()-t:.3f}秒，字典中不存在该哈希值。")
     return flag
@@ -343,23 +347,26 @@ if __name__ == "__main__":
                     t=time()
                     sum_length=0
                     crack_num=0
-                    with open("output.csv","w",encoding="gbk") as f:
-                        f.write("哈希,明文,哈希算法,原哈希,...\n")
+                    os.makedirs("output", exist_ok=True)
+                    nowtime=datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+                    with open(f"output\\{nowtime}.csv","w",encoding="gbk") as f:
+                        f.write("哈希,明文,哈希算法,完整哈希,...\n")
                         for filename in filenames:
                             if os.path.getsize(filename)>1024*1024*10:
-                                choose=input(f"您想要爆破文件大小超过了10MB,其大小为{os.path.getsize(filename)//1048576}MB,是否继续进行爆破(Y/N)?")
+                                choose=input(f"您想要爆破的文件 {filename} 大小超过了10MB,其大小为{os.path.getsize(filename)//1048576}MB,是否继续进行爆破(Y/N)?")
                                 if choose.lower() not in ["y","yes"]:continue
                             report(f"准备批量爆破 {filename} 哈希列表文件")
-                            l=open(filename,"r",encoding="utf-8",errors="ignore").read().splitlines()
+                            l=set(re.findall(b'[0-9a-f]{10,}|[0-9A-F]{10,}',open(filename,"rb").read()))
                             sum_length+=len(l)
                             for i in l:
+                                i=i.decode()
                                 if hash_check(i):
                                     report(f"正在爆破 {i}")
                                     if lis:=hash_crash(i):
                                         f.write(",".join([i]+lis)+"\n")
                                         crack_num+=1
-                    report(f"批量爆破完成！爆破成功数{crack_num}/{sum_length}，爆破结果已保存在output.csv中，总共用时{time()-t:.3f}秒")
-                    if crack_num:os.startfile("output.csv")
+                    report(f"批量爆破完成！爆破成功数{crack_num}/{sum_length}，爆破结果已保存在output\\{nowtime}.csv中，总共用时{time()-t:.3f}秒")
+                    if crack_num:os.startfile(f"output\\{nowtime}.csv")
 
             elif mode == "6":
                 t=time()
@@ -367,7 +374,7 @@ if __name__ == "__main__":
                 report(f"哈希去重完成，清理哈希条数{length}条，清理明文条数{plain_length}条，用时{time()-t:.3f}秒")
                           
             elif mode == "7":
-                print("比较危险，可以咨询开发者运行此模式")
+                print("比较危险，可以咨询开发者运行此模式，QQ:2924917407")
 ##                add_algorithm()
                 pass
 
