@@ -1,6 +1,6 @@
 # Batch_Crack_Hashes
-# version: v2.1.0 
-# Author: Pulsar 
+# version: v2.1.1
+# Author: Pulsar
 
 import hashlib
 from hashlib import md5,sha256,sha3_256,sha1,sha512
