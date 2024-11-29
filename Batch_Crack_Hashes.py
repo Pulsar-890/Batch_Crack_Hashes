@@ -1,5 +1,5 @@
 # Batch_Crack_Hashes
-# version: v2.1.0
+# version: v2.1.1
 # Author: Pulsar
 
 import hashlib
@@ -208,17 +208,19 @@ def hash_calcu(text):
     t=time()
     flag=True
     
-    ma=m5(a)
+    ma=m5(a)[:4]
     if not a in open(f"dict\\{ma[0]}\\{ma[1]}\\{ma[2]}\\{ma[3]}.txt","rb").read().splitlines():
         for j in li:
+##            print(bytes.fromhex(j[4:8]+ma))
             open(f"hash\\{j[0]}\\{j[1]}\\{j[2]}\\{j[3]}.txt","ab").write(bytes.fromhex(j[4:8]+ma))
         open(f"dict\\{ma[0]}\\{ma[1]}\\{ma[2]}\\{ma[3]}.txt","ab").write(b"\n"+a)
         flag=False
         
     if a!=b:
-        mb=m5(b)
+        mb=m5(b)[:4]
         if not b in open(f"dict\\{mb[0]}\\{mb[1]}\\{mb[2]}\\{mb[3]}.txt","rb").read().splitlines():
             for j in li2:
+##                print(bytes.fromhex(j[4:8]+mb))
                 open(f"hash\\{j[0]}\\{j[1]}\\{j[2]}\\{j[3]}.txt","ab").write(bytes.fromhex(j[4:8]+mb))
             open(f"dict\\{mb[0]}\\{mb[1]}\\{mb[2]}\\{mb[3]}.txt","ab").write(b"\n"+b)
             flag=False
@@ -243,12 +245,14 @@ def hash_judge(md,t,lis):
 
 #哈希碰撞函数
 def hash_crash(md,silent=False):
+    report(f"正在爆破 {md}")
     t=time()
     flag=[]
     txt=open(f"hash\\{md[0]}\\{md[1]}\\{md[2]}\\{md[3]}.txt","rb").read()
     for i in range(0,len(txt),4):
         if txt[i:i+2].hex()==md[4:8]:
             x=txt[i+2:i+4].hex()
+##            print(txt[i:i+4].hex())
             flag+=hash_judge(md,t,open(f"dict\\{x[0]}\\{x[1]}\\{x[2]}\\{x[3]}.txt","rb").read().splitlines())
     flag+=hash_judge(md,t,[b"\n",b"\n\n",b"\n\n\n",b"",b'\r',b'\r\n'])
     if not flag:
@@ -361,7 +365,6 @@ if __name__ == "__main__":
                             for i in l:
                                 i=i.decode()
                                 if hash_check(i):
-                                    report(f"正在爆破 {i}")
                                     if lis:=hash_crash(i):
                                         f.write(",".join([i]+lis)+"\n")
                                         crack_num+=1
