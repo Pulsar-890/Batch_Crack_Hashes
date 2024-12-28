@@ -1,5 +1,5 @@
 # Batch_Crack_Hashes
-# version: v2.1.1
+# version: v2.1.2
 # Author: Pulsar
 
 import hashlib
@@ -87,8 +87,10 @@ def load_file(infor,filename=""):
             if i not in blacklist:print(i)
     while (not filename or not os.path.exists(filename)) and filename!="t":
         filename = input(f"请输入{infor}文件(夹)名，输入't'返回菜单：").strip()
+        if filename[0]=="\"" and os.path.exists(filename[1:-1]):
+            filename=filename[1:-1]
     filenames=[]
-    if filename!="t":                
+    if filename!="t":
         if os.path.isdir(filename):     #检测到文件夹则进行递归读取
             for path,_,lis in os.walk(filename):
                 filenames+=[path+"\\"+i for i in lis if i.endswith(".txt") or i.endswith(".dic")]
@@ -313,6 +315,10 @@ if __name__ == "__main__":
 6.哈希去重(程序异常导致字典混乱的时候使用)
 7.添加算法(需要手动修改程序)
 回车直接开始字典破解：''')
+            
+            if mode[0]=="\"" and len(mode)>=4 and os.path.exists(mode[1:-1]):
+                mode=mode[1:-1]
+                
             if mode not in ["0","1","2","3","4","5","6","7"] and os.path.exists(mode):
                 file_path=mode
                 mode = input('''
