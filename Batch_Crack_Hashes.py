@@ -1,5 +1,5 @@
 # Batch_Crack_Hashes
-# version: v2.1.2
+# version: v2.1.3
 # Author: Pulsar
 
 import hashlib
@@ -236,8 +236,8 @@ def hash_judge(md,t,lis):
     for j in lis:
         for k,n in enumerate(hash_list(j)):
             if n.startswith(md) or md.startswith(n):
-                try:print(f"SUCCESS!\n\n{j.decode('utf-8')}\n")
-                except:print(f"SUCCESS!\n\n{j}\n")
+                try:print(f"SUCCESS!\n\n{j.decode('utf-8')} (utf-8)\n")
+                except:print(f"SUCCESS!\n\n{j.decode('gbk')} (gbk)\n")
                 report(f"严谨形式:{[j]}\n完整哈希值为:{n}",True)
                 report(f"碰撞成功！加密方式为{encode_lis[k]}，用时{time()-t:.5f}秒")
                 try:flag+=[j.decode('utf-8'),encode_lis[k],n]
